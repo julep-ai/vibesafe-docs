@@ -1,0 +1,234 @@
+---
+title: Core Concepts
+description: How Vibesafe actually works under the hood
+sidebar:
+  order: 0
+---
+
+import { Card, CardGrid } from '@astrojs/starlight/components';
+
+## The Big Idea
+
+Vibesafe treats AI-generated code like compiled artifacts. Your spec is the source code. The generated implementation is the binary. Same source = same binary.
+
+This is only possible because of three key ideas:
+
+1. **Content-addressed storage** - Every spec has a unique hash. Same hash = same code.
+2. **Dual-mode operation** - Dev mode generates dynamically. Prod mode loads frozen checkpoints.
+3. **Test-driven verification** - Code must pass tests before it can be activated.
+
+That's it. Everything else is implementation details.
+
+## The Mental Model
+
+Think of Vibesafe like a build system:
+
+```
+Traditional:  source.c  →  [compiler]  →  binary
+TypeScript:   file.ts   →  [tsc]       →  file.js
+Vibesafe:     spec.py   →  [AI + test] →  checkpoint/impl.py
+```
+
+But with extra guarantees:
+- **Determinism**: Same input → same output (via hashing)
+- **Verification**: Output must pass tests (quality gates)
+- **Audit trail**: Full metadata for every build (timestamps, hashes, model)
+
+## Read These to Understand
+
+<CardGrid>
+  <Card title="Architecture" icon="puzzle">
+    Components, data flow, where things live.
+    [→ Architecture](./architecture)
+  </Card>
+  <Card title="Hashing" icon="approve-check">
+    How we guarantee reproducibility.
+    [→ Hash-Locked Checkpoints](./hashing)
+  </Card>
+  <Card title="Runtime Modes" icon="setting">
+    Dev vs prod: different behaviors, different trade-offs.
+    [→ Runtime Modes](./runtime-modes)
+  </Card>
+  <Card title="Providers" icon="external">
+    LLM integration, caching, backends.
+    [→ Provider System](./providers)
+  </Card>
+</CardGrid>
+
+## Why This Design?
+
+**Problem**: AI code generation is non-deterministic and unverifiable.
+
+**Bad solution**: Just use it anyway, hope for the best.
+
+**Worse solution**: Manual review every time you regenerate.
+
+**Our solution**: Make it deterministic (hashing), verifiable (tests), and auditable (metadata).
+
+The key insight: **If specs are version-controlled and implementations are deterministic, you can trust the system.**
+
+## The Four Core Principles
+
+### 1. Specs Are Source of Truth
+
+You write:
+```python
+@vibesafe.func
+def add(a: int, b: int) -> int:
+    """
+    >>> add(2, 3)
+    5
+    """
+    yield VibesafeHandled()
+```
+
+This is the contract. It's readable. It's version-controlled. It's what you review in PRs.
+
+The generated code? That's just an artifact. Like a compiled binary. You don't review binaries, you review source.
+
+### 2. Hashing Guarantees Reproducibility
+
+Every spec gets a hash:
+```
+H_spec = SHA-256(signature + doctests + dependencies + model + ...)
+```
+
+Same hash = same code. Always.
+
+Change anything? Hash changes. Vibesafe knows immediately.
+
+This is how we detect drift: "You changed the spec but didn't recompile."
+
+### 3. Two Modes, Two Philosophies
+
+**Dev mode**: "Generate on the fly, I'm iterating"
+- Hash mismatch? Regenerate automatically
+- Missing checkpoint? Generate it
+- API key required: Yes
+
+**Prod mode**: "No surprises, everything is frozen"
+- Hash mismatch? Hard error, deployment fails
+- Missing checkpoint? Hard error
+- API key required: No (just loads files)
+
+This is a feature, not a bug. You want different behavior in different contexts.
+
+### 4. Tests Are Mandatory
+
+Generated code must pass:
+- All doctests (your examples)
+- Type checking (mypy)
+- Linting (ruff)
+- Optional: Property-based tests (Hypothesis)
+
+Fail any of these? Can't be saved. Can't be used in production.
+
+This is the safety net. If your specs are good (complete examples, good types), the code will be too.
+
+## Common Questions
+
+**"How is this different from just copy-pasting from ChatGPT?"**
+
+ChatGPT:
+- Ask → Get answer → Copy-paste → Hope
+- Different answer every time
+- No verification
+- No audit trail
+
+Vibesafe:
+- Write spec once → Generate → Test → Save
+- Same spec = same code (hashed)
+- Automatic verification (tests)
+- Full audit trail (metadata)
+
+**"Why not just use Copilot?"**
+
+Copilot gives you suggestions while you type. Vibesafe generates complete, tested implementations in a separate step.
+
+They're complementary. Copilot helps you write specs faster. Vibesafe turns specs into implementations.
+
+**"Can I just edit the generated code?"**
+
+Technically yes. But:
+- Hash verification will catch it
+- Next regeneration will overwrite it
+- You're fighting the system
+
+Better: Edit the spec, regenerate. That's the workflow.
+
+**"What if I need to override something?"**
+
+Add code before `VibesafeHandled()`:
+
+```python
+@vibesafe.func
+def add(a: int, b: int) -> int:
+    """>>> add(2, 3)\n5"""
+    # This runs before AI code
+    if not isinstance(a, int):
+        a = int(a)
+    if not isinstance(b, int):
+        b = int(b)
+    # AI fills in the rest after this point
+    yield VibesafeHandled()
+```
+
+Everything before the yield is preserved. Hash includes it.
+
+## The Data Flow (Simplified)
+
+**Compilation**:
+```
+Spec file → AST parser → Extract metadata
+         → Compute spec hash (5a72e9...)
+         → Check cache (hit? return cached)
+         → Render prompt (Jinja2 template)
+         → Call LLM (with seed for determinism)
+         → Validate output (parse, type check)
+         → Save checkpoint (.vibesafe/checkpoints/<hash>/)
+         → Update index (.vibesafe/index.toml)
+         → Write shim (__generated__/)
+```
+
+**Runtime (import)**:
+```
+from app.math import add
+         → load_active("app.math/add")
+         → Read index → Get checkpoint hash
+         → Load impl.py from checkpoint
+         → If prod: verify spec hash matches
+         → Return function object
+```
+
+**No LLM calls at runtime.** Just loading Python files.
+
+## What You Should Read Next
+
+**If you're confused about how things work:**
+Start with [Architecture](./architecture) - it has diagrams and explains all the components.
+
+**If you're wondering about the hashing:**
+Read [Hash-Locked Checkpoints](./hashing) - it explains spec hashes, checkpoint hashes, and why this matters.
+
+**If you're not sure when to use dev vs prod mode:**
+Check [Runtime Modes](./runtime-modes) - it breaks down the trade-offs and shows workflows.
+
+**If you want to understand the LLM integration:**
+Look at [Provider System](./providers) - it covers OpenAI, Anthropic, local models, and caching.
+
+## Next: Dive Deeper
+
+<CardGrid>
+  <Card title="See the Architecture" icon="puzzle">
+    Components, data flow, file structure.
+    [→ Architecture](./architecture)
+  </Card>
+  <Card title="Understand Hashing" icon="approve-check">
+    How reproducibility actually works.
+    [→ Hashing](./hashing)
+  </Card>
+  <Card title="Skip to Practice" icon="rocket">
+    Come back here when you're confused.
+    [→ Getting Started](../getting-started/)
+  </Card>
+</CardGrid>

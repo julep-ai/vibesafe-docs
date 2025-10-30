@@ -1,0 +1,175 @@
+---
+title: Getting Started
+description: Get Vibesafe running and create your first AI-generated function
+sidebar:
+  order: 0
+---
+
+import { Card, CardGrid } from '@astrojs/starlight/components';
+
+## Here's the Plan
+
+You're going to go from zero to a working AI-generated function in about 10 minutes. No fluff, just the essential steps:
+
+<CardGrid>
+  <Card title="Install" icon="rocket">
+    Get Python 3.12+, install vibesafe, set an API key.
+    [→ Installation](./installation)
+  </Card>
+  <Card title="Configure" icon="setting">
+    Drop a `vibesafe.toml` in your project root.
+    [→ Configuration](./configuration)
+  </Card>
+  <Card title="Write a Spec" icon="pencil">
+    Function + doctests = spec. AI does the rest.
+    [→ First Spec](./first-spec)
+  </Card>
+  <Card title="Scan & Manage" icon="magnifier">
+    Find all your specs, check their status.
+    [→ Scanning](./scanning)
+  </Card>
+</CardGrid>
+
+## What You're Actually Building
+
+By the end of this section, you'll have:
+
+```python
+# Your spec (what you write)
+@vibesafe.func
+def greet(name: str) -> str:
+    """
+    >>> greet("Alice")
+    'Hello, Alice!'
+    """
+    yield VibesafeHandled()
+
+# Generated implementation (what AI writes)
+# ↓ Lives in .vibesafe/checkpoints/app/hello/greet/<hash>/impl.py
+def greet(name: str) -> str:
+    return f"Hello, {name}!"
+```
+
+And you'll be able to:
+- Import it like regular Python code
+- Change the spec and regenerate automatically (dev mode)
+- Deploy it with frozen checkpoints (prod mode)
+- Verify it hasn't changed with hash checks
+
+## The Workflow You'll Learn
+
+```bash
+# 1. Write spec with doctests
+vim app/hello.py
+
+# 2. See what vibesafe found
+vibesafe scan
+
+# 3. Generate implementation
+vibesafe compile --target app.hello/greet
+
+# 4. Run tests (automatic)
+vibesafe test --target app.hello/greet
+
+# 5. Mark as production-ready
+vibesafe save --target app.hello/greet
+
+# 6. Use it
+python -c "from app.hello import greet; print(greet('World'))"
+```
+
+That's it. The rest is optimization and understanding.
+
+## Prerequisites
+
+**You need:**
+- Python 3.12 or newer (3.13 works, 3.11 doesn't)
+- An OpenAI API key (or Anthropic, or local LLM)
+- Basic Python knowledge (you should know what a function and a type hint are)
+
+**You don't need:**
+- A PhD in machine learning
+- To understand how LLMs work internally
+- To be an expert in prompt engineering
+
+**Time commitment:**
+- Minimum: 10 minutes (install → first working function)
+- Recommended: 30 minutes (understand the full workflow)
+- To really get it: 1-2 hours (read core concepts, try different scenarios)
+
+## How to Use This Guide
+
+**If you're the type who learns by doing:**
+
+1. Go straight to [First Spec](./first-spec)
+2. Copy-paste the examples
+3. Run the commands
+4. Come back to [Core Concepts](../core-concepts/) when something doesn't make sense
+
+**If you're the type who needs to understand first:**
+
+1. Read [Installation](./installation) and [Configuration](./configuration)
+2. Skim [Core Concepts](../core-concepts/) to understand the model
+3. Follow [First Spec](./first-spec) step-by-step
+4. Dive into [How-To Guides](../how-to-guides/) for specific workflows
+
+**If you're a team lead evaluating this:**
+
+1. Read the [index page](/) for the pitch
+2. Check [Core Concepts](../core-concepts/) to understand the architecture
+3. Look at [Operations](../operations/) for deployment concerns
+4. Review the [Reference](../reference/) to see what you're signing up for
+
+## Common Questions Before You Start
+
+**"Do I need to know how to write AI prompts?"**
+
+No. The prompts are templated (Jinja2) and you can use the defaults. If you want to customize later, you can.
+
+**"What if I don't have an OpenAI API key?"**
+
+You can use Anthropic (Claude) or run a local LLM (llama.cpp, vLLM, Ollama). Anything OpenAI-compatible works.
+
+**"Is this going to slow down my development?"**
+
+Dev mode auto-generates on the fly, so it's actually faster than copy-pasting from ChatGPT. Prod mode is just loading Python files, so zero overhead.
+
+**"What if the AI generates bad code?"**
+
+It has to pass your doctests, type checks (mypy), and linting (ruff) before it can be saved. If your specs are good, the code will be too.
+
+**"Can I edit the generated code?"**
+
+You can, but don't. Edit the spec instead, regenerate. That's the whole point - specs are source of truth.
+
+## What This Guide Won't Teach You
+
+- **How to write good tests** - You should already know about doctests or be willing to learn
+- **FastAPI basics** - The HTTP endpoint feature assumes you know FastAPI
+- **Advanced Python** - We use type hints, generators, decorators - if those scare you, learn Python first
+- **Prompt engineering** - The defaults work well; customization is optional
+
+## Ready?
+
+Start with [Installation](./installation) and work your way through. The whole thing is linear and builds on itself.
+
+Or if you're impatient, skip to [First Spec](./first-spec) and figure out the rest as you go.
+
+## Next Steps
+
+Pick your path:
+
+<CardGrid>
+  <Card title="Just Install It" icon="rocket">
+    Get the tools working, set your API key.
+    [→ Installation](./installation)
+  </Card>
+  <Card title="I Want To Understand" icon="open-book">
+    Learn how it works before diving in.
+    [→ Core Concepts](../core-concepts/)
+  </Card>
+  <Card title="Show Me Examples" icon="document">
+    See real working code first.
+    [→ GitHub Examples](https://github.com/julep-ai/vibesafe/tree/main/examples)
+  </Card>
+</CardGrid>
