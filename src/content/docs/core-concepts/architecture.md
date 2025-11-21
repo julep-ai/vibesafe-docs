@@ -84,8 +84,7 @@ Here's what happens when you run `vibesafe compile`:
    └─ Result: PASS or FAIL
 
 9. If tests pass and you run `vibesafe save`:
-   ├─ Mark checkpoint as "active" in index
-   └─ Update __generated__/app/math.py shim
+    ├─ Mark checkpoint as "active" in index
 ```
 
 **At runtime** (when you `from app.math import add`):
@@ -102,13 +101,23 @@ Here's what happens when you run `vibesafe compile`:
 
 ## Components
 
-### 1. Decorators (`core.py`)
+### 1. Decorators & Registry (`core.py`)
 
-The public API. What you use in your code:
+The public API and global unit registry:
 
 ```python
 @vibesafe.func  # For regular functions
 @vibesafe.http(method="POST", path="/calculate")  # For FastAPI endpoints
+```
+
+Decorators register units to a module-level registry:
+
+```python
+# Access the global registry
+from vibesafe.core import get_registry, get_unit
+
+registry = get_registry()  # All registered units
+unit_meta = get_unit("app.math/add")  # Specific unit metadata
 ```
 
 Stores metadata (provider, template, model) and defers to runtime loader.
@@ -227,9 +236,6 @@ your-project/
 ├── vibesafe.toml              # Config
 ├── app/
 │   └── math.py                # Your spec
-├── __generated__/             # Auto-generated shims
-│   └── app/
-│       └── math.py
 └── .vibesafe/
     ├── index.toml             # Active checkpoint mapping
     ├── checkpoints/           # Generated implementations
@@ -248,7 +254,6 @@ your-project/
 - `.vibesafe/index.toml` (checkpoint mapping)
 
 **What to ignore:**
-- `__generated__/` (can regenerate)
 - `.vibesafe/cache/` (optional)
 
 ## Design Decisions

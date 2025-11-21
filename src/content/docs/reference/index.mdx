@@ -11,6 +11,96 @@ This section is for when you need to know "what are all the options for X?"
 
 Not tutorials. Not explanations. Just facts.
 
+## Core API
+
+### `get_registry()`
+
+```python
+from vibesafe.core import get_registry
+
+def get_registry() -> dict[str, dict[str, Any]]:
+    """
+    Return the global unit registry containing all decorated functions.
+
+    Returns:
+        Dictionary mapping unit_id (module.path/function_name) to metadata
+
+    Example:
+        >>> from vibesafe.core import get_registry
+        >>> registry = get_registry()
+        >>> list(registry.keys())
+        ['examples.math.ops/sum_str', 'examples.api.routes/hello_endpoint']
+    """
+```
+
+### `get_unit(unit_id: str)`
+
+```python
+from vibesafe.core import get_unit
+
+def get_unit(unit_id: str) -> dict[str, Any] | None:
+    """
+    Retrieve metadata for a specific registered unit.
+
+    Args:
+        unit_id: Unit identifier in format "module.path/function_name"
+
+    Returns:
+        Unit metadata dict or None if not found
+
+    Metadata includes:
+        - type: "function" or "http"
+        - func: The original function object
+        - provider: Provider name or None
+        - template: Template path
+        - module: Module name
+        - qualname: Qualified function name
+
+    Example:
+        >>> from vibesafe.core import get_unit
+        >>> meta = get_unit("examples.math.ops/sum_str")
+        >>> meta["type"]
+        'function'
+    """
+```
+
+### `resolve_template_id()`
+
+```python
+from vibesafe.config import resolve_template_id
+
+def resolve_template_id(
+    unit_meta: dict[str, Any],
+    config: VibesafeConfig | None = None
+) -> str:
+    """
+    Determine which prompt template to use for a unit.
+
+    Resolution order:
+    1. Explicit template in unit_meta["template"]
+    2. Type-based default from config:
+       - http → config.prompts.http
+       - function → config.prompts.function
+
+    Args:
+        unit_meta: Unit metadata dictionary
+        config: Optional config override (defaults to global config)
+
+    Returns:
+        Template identifier (file path)
+
+    Example:
+        >>> from vibesafe.config import resolve_template_id, get_config
+        >>> meta = {"kind": "http"}
+        >>> resolve_template_id(meta)
+        'prompts/http_endpoint.j2'
+        >>>
+        >>> meta_custom = {"template": "custom/my_template.j2"}
+        >>> resolve_template_id(meta_custom)
+        'custom/my_template.j2'
+    """
+```
+
 ## What's Here (Coming Soon)
 
 **CLI Commands:**

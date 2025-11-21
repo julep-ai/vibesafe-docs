@@ -47,27 +47,20 @@ Summary:
 | `⚠ drift detected` | Spec changed | Recompile with `--force` |
 | `❌ tests failing` | Checkpoint exists but broken | Fix spec or regenerate |
 
-## Generate Import Shims
+## Deprecated: --write-shims Flag
+
+> **Note:** The `--write-shims` flag is deprecated as of v0.2. Shims are no longer needed for importing generated code.
 
 ```bash
 vibesafe scan --write-shims
 ```
 
-Creates `__generated__/` directory with import wrappers.
-
-Example - for `app/math.py`:
-```python
-# __generated__/app/math.py (auto-generated)
-from vibesafe.runtime import load_active
-
-add = load_active("app.math/add")
-fibonacci = load_active("app.math/fibonacci")
 ```
+Found 3 units:
+  ✓ examples.math.ops/sum_str       [2 doctests] checkpoint active
 
-**When to run:**
-- After adding new specs
-- After renaming functions
-- After reorganizing modules
+⚠ Shims are deprecated and no longer needed.
+```
 
 ## What Gets Scanned
 
@@ -95,10 +88,7 @@ Then scan finds everything imported there.
 # 1. Check vibesafe found them
 vibesafe scan
 
-# 2. Regenerate shims
-vibesafe scan --write-shims
-
-# 3. Compile new ones
+# 2. Compile new ones
 vibesafe compile
 ```
 
@@ -175,13 +165,7 @@ ruff check .
 export PYTHONPATH="${PWD}:${PYTHONPATH}"
 ```
 
-**"Shims not updating"**
 
-Force regeneration:
-```bash
-rm -rf __generated__/
-vibesafe scan --write-shims
-```
 
 ## Scan Automation
 
@@ -190,7 +174,7 @@ vibesafe scan --write-shims
 ```bash
 # .git/hooks/pre-commit
 #!/bin/bash
-vibesafe scan --write-shims
+vibesafe scan
 vibesafe diff
 if [ $? -ne 0 ]; then
     echo "Drift detected! Run: vibesafe compile --force"
@@ -213,7 +197,7 @@ fi
 ```makefile
 .PHONY: scan
 scan:
-	vibesafe scan --write-shims
+	vibesafe scan
 	vibesafe status
 ```
 

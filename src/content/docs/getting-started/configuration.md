@@ -38,7 +38,7 @@ timeout = 60                # Seconds before giving up
 checkpoints = ".vibesafe/checkpoints"  # Generated code goes here
 cache = ".vibesafe/cache"              # LLM response cache
 index = ".vibesafe/index.toml"         # Active checkpoint mapping
-generated = "__generated__"             # Import shims directory
+generated = "__generated__"             # Import shim directory (deprecated)
 
 [prompts]
 function = "prompts/function.j2"        # Jinja2 template for @vibesafe.func
@@ -125,7 +125,6 @@ Add to `.gitignore`:
 
 ```
 .vibesafe/cache/      # LLM responses (optional to exclude)
-__generated__/        # Can regenerate with --write-shims
 ```
 
 **Do commit**:
@@ -164,6 +163,17 @@ Available template vars:
 - `doctests` - Parsed test cases
 - `docstring` - Full docstring
 - `pre_hole_src` - Code before VibesafeHandled()
+
+## Template Resolution
+
+Vibesafe resolves which prompt template to use for each unit through the following priority:
+
+1. Explicit `template` parameter on the decorator
+2. Unit type-based default from `vibesafe.toml`:
+   - `http` units → `prompts.http` config value
+   - `function` units → `prompts.function` config value
+
+This is handled automatically by the `resolve_template_id()` helper.
 
 ## Dev vs Prod Mode
 

@@ -46,6 +46,19 @@ H_spec = SHA-256(
 )
 ```
 
+## Template Resolution in Hashing
+
+The spec hash includes the template identifier, which is resolved via:
+
+```python
+from vibesafe.config import resolve_template_id
+
+template_id = resolve_template_id(unit_meta, config)
+# Contributes to: SHA-256(signature + doctests + template_id + ...)
+```
+
+This means changing template resolution (via config or decorator params) will change the hash.
+
 ### Example
 
 ```python
@@ -235,7 +248,7 @@ app/**/*.py             # Your specs
 **Ignore**:
 ```
 .vibesafe/cache/        # LLM responses
-__generated__/          # Auto-generated shims
+__generated__/          # Auto-generated shims (deprecated)
 ```
 
 ### Upgrading Vibesafe

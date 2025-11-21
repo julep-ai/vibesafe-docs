@@ -64,14 +64,6 @@ Found 1 vibesafe unit:
   app.hello/greet  [3 doctests]  ⚠ not compiled
 ```
 
-Good. Now generate shims:
-
-```bash
-vibesafe scan --write-shims
-```
-
-This creates `__generated__/app/hello.py` for later.
-
 ## Step 3: Compile (Generate Code)
 
 ```bash
@@ -88,7 +80,6 @@ Compiling app.hello/greet...
   ✓ Validated implementation
   ✓ Saved checkpoint: 2d46f1...
   ✓ Updated index
-  ✓ Wrote shim
 
 Compilation successful!
 ```
@@ -101,7 +92,6 @@ Compilation successful!
 5. Checked the AI's output is valid Python
 6. Saved it to `.vibesafe/checkpoints/app/hello/greet/<hash>/impl.py`
 7. Updated the registry in `.vibesafe/index.toml`
-8. Created an import shim in `__generated__/app/hello.py`
 
 ## Step 4: Test It
 
@@ -150,26 +140,19 @@ Now it's "production-ready" (according to your tests).
 
 Two ways:
 
-**Method 1** - Import from `__generated__`:
+**Method 1** - Direct import (recommended):
 ```python
-from __generated__.app.hello import greet
+from app.hello import greet  # Auto-loads from checkpoint
 
 print(greet("World"))  # Hello, World!
 ```
 
-**Method 2** - Use the runtime loader (recommended):
+**Method 2** - Use the runtime loader:
 ```python
 from vibesafe.runtime import load_active
 
 greet = load_active("app.hello/greet")
 print(greet("Python"))  # Hello, Python!
-```
-
-**Method 3** - Direct import (if saved):
-```python
-from app.hello import greet  # Auto-loads from checkpoint
-
-print(greet("Vibesafe"))  # Hello, Vibesafe!
 ```
 
 Test it from command line:
