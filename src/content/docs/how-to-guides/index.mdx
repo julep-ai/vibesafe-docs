@@ -11,32 +11,169 @@ You have a specific goal. These guides show you how to do it.
 
 No theory. No explanations. Just "here's the command, here's what happens."
 
-## Coming Soon
+## Core Workflows
 
-We're building out practical guides for:
+### Compile a Single Function
+```bash
+vibesafe compile --target app.math.ops.sum_str
+```
 
-**Core Workflows:**
-- Compile a single function
-- Compile your entire project
-- Test generated code
-- Save checkpoints for production
-- Check for spec drift
+### Compile Your Entire Project
+```bash
+vibesafe compile
+```
 
-**HTTP Endpoints:**
-- Create a FastAPI endpoint with `@vibesafe.http`
-- Freeze HTTP dependencies
-- Mount generated endpoints to your app
+### Test Generated Code
+```bash
+vibesafe test
+```
 
-**CI/CD Integration:**
-- Set up GitHub Actions
-- Add drift detection to CI
-- Auto-generate in CI (if you must)
+### Save Checkpoints for Production
+```bash
+vibesafe save --freeze-http-deps
+```
 
-**Advanced:**
-- Use multiple providers (OpenAI + Claude + local)
-- Custom prompt templates
-- Property-based testing with Hypothesis
-- Debugging failed generations
+### Check for Spec Drift
+```bash
+vibesafe diff
+```
+
+## HTTP Endpoints
+
+### Create a FastAPI Endpoint
+```python
+from vibesafe import vibesafe
+
+@vibesafe
+def get_user(user_id: str) -> dict:
+    """Get user by ID"""
+    # Implementation will be generated
+    raise VibeCoded()
+```
+
+### Freeze HTTP Dependencies
+```bash
+vibesafe save --target app.api.routes.get_user --freeze-http-deps
+```
+
+### Mount Generated Endpoints
+```python
+from fastapi import FastAPI
+from app.api.routes import get_user
+
+app = FastAPI()
+app.add_api_route("/users/{user_id}", get_user, methods=["GET"])
+```
+
+## Migrating from v0.1 to v0.2
+
+### Quick Migration Checklist
+
+1. **Update imports**:
+   ```python
+   # Before
+   from vibesafe import vibesafe, VibesafeHandled
+
+   # After
+   from vibesafe import vibesafe, VibeCoded
+   ```
+
+2. **Update decorators**:
+   ```python
+   # Before
+   @vibesafe.func
+   def my_function(): ...
+
+   # After
+   @vibesafe
+   def my_function(): ...
+   ```
+
+3. **Update hole markers**:
+   ```python
+   # Before
+   yield VibesafeHandled()
+
+   # After
+   raise VibeCoded()
+   ```
+
+4. **Update imports in your code**:
+   ```python
+   # Before
+   from app.__generated__.math.ops import sum_str
+
+   # After
+   from app.math.ops import sum_str
+   ```
+
+5. **Update vibesafe.toml**:
+   ```toml
+   # Before
+   [prompts]
+   function = "prompts/function.j2"
+
+   # After
+   [prompts]
+   function = "vibesafe/templates/function.j2"
+   ```
+
+6. **Recompile all units**:
+   ```bash
+   vibesafe compile --force
+   ```
+
+### Breaking Changes
+
+- The `__generated__/` directory is no longer used
+- The `--write-shims` flag has been removed
+- Old checkpoints remain compatible, but recompilation is recommended
+
+## CI/CD Integration
+
+### Set Up GitHub Actions
+```yaml
+- name: Install Vibesafe
+  run: pip install vibesafe
+
+- name: Compile and Test
+  run: |
+    vibesafe compile
+    vibesafe test
+```
+
+### Add Drift Detection to CI
+```yaml
+- name: Check for Drift
+  run: vibesafe diff
+```
+
+## Advanced Usage
+
+### Use Multiple Providers
+Configure in `vibesafe.toml`:
+```toml
+[providers]
+primary = "openai"
+fallback = ["claude", "local"]
+```
+
+### Custom Prompt Templates
+```toml
+[prompts]
+function = "custom/function.j2"
+```
+
+### Property-Based Testing
+```python
+import hypothesis
+from app.math.ops import sum_str
+
+@hypothesis.given(st.text(), st.text())
+def test_sum_str_properties(a, b):
+    result = sum_str(a, b)
+    assert isinstance(result, str)
+```
 
 ## For Now
 

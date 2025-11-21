@@ -73,18 +73,37 @@ The key insight: **If specs are version-controlled and implementations are deter
 
 You write:
 ```python
-@vibesafe.func
+@vibesafe
 def add(a: int, b: int) -> int:
     """
     >>> add(2, 3)
     5
     """
-    yield VibesafeHandled()
+    raise VibeCoded()
 ```
 
 This is the contract. It's readable. It's version-controlled. It's what you review in PRs.
 
 The generated code? That's just an artifact. Like a compiled binary. You don't review binaries, you review source.
+
+### The VibeCoded Marker
+
+In v0.2, we use `raise VibeCoded()` to mark where AI should generate code. This
+pattern:
+- **Semantically clear**: "This function is AI-coded"
+- **Type-safe**: Properly signals to type checkers
+- **Explicit**: Clearly marks the AI boundary in your code
+
+```python
+@vibesafe
+def process(data: str) -> dict:
+    """Parse and process data."""
+    # Pre-processing can go here
+    validated = validate_input(data)
+
+    # Mark the AI boundary
+    raise VibeCoded()  # AI generates implementation from here
+```
 
 ### 2. Hashing Guarantees Reproducibility
 
@@ -158,10 +177,10 @@ Better: Edit the spec, regenerate. That's the workflow.
 
 **"What if I need to override something?"**
 
-Add code before `VibesafeHandled()`:
+Add code before `VibeCoded()`:
 
 ```python
-@vibesafe.func
+@vibesafe
 def add(a: int, b: int) -> int:
     """>>> add(2, 3)\n5"""
     # This runs before AI code
@@ -170,10 +189,10 @@ def add(a: int, b: int) -> int:
     if not isinstance(b, int):
         b = int(b)
     # AI fills in the rest after this point
-    yield VibesafeHandled()
+    raise VibeCoded()
 ```
 
-Everything before the yield is preserved. Hash includes it.
+Everything before the raise is preserved. Hash includes it.
 
 ## The Data Flow (Simplified)
 

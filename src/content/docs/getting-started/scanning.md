@@ -11,7 +11,7 @@ sidebar:
 vibesafe scan
 ```
 
-Finds all `@vibesafe.func` and `@vibesafe.http` decorated functions in your project and shows their status.
+Finds all `@vibesafe` decorated functions in your project and shows their status.
 
 That's it. Simple.
 
@@ -47,20 +47,11 @@ Summary:
 | `⚠ drift detected` | Spec changed | Recompile with `--force` |
 | `❌ tests failing` | Checkpoint exists but broken | Fix spec or regenerate |
 
-## Deprecated: --write-shims Flag
-
-> **Note:** The `--write-shims` flag is deprecated as of v0.2. Shims are no longer needed for importing generated code.
-
-```bash
-vibesafe scan --write-shims
-```
-
-```
-Found 3 units:
-  ✓ examples.math.ops/sum_str       [2 doctests] checkpoint active
-
-⚠ Shims are deprecated and no longer needed.
-```
+:::caution[Shims Deprecated]
+The `__generated__/` shim directory and `--write-shims` flag are deprecated as of
+v0.2.
+Generated code is now imported directly from your modules.
+:::
 
 ## What Gets Scanned
 

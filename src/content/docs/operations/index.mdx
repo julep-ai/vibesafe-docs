@@ -15,36 +15,191 @@ Once you're past "does it work on my laptop?", you need to think about:
 
 This section covers that.
 
-## Coming Soon
+## Production Deployment
 
-**Deployment:**
-- Docker setup
-- Kubernetes configuration
-- Environment variable management
-- Checkpoint versioning
+### Checkpoint Management
+1. **Compile and test locally**:
+   ```bash
+   vibesafe compile
+   vibesafe test
+   ```
 
-**Monitoring:**
-- Drift detection in production
-- Health checks
-- Logging
-- Metrics (if any)
+2. **Commit checkpoints**:
+   ```bash
+   git add .vibesafe/
+   git commit -m "Add vibesafe checkpoints"
+   ```
 
-**Troubleshooting:**
-- Common production errors
-- Debugging hash mismatches
-- Performance issues
-- Recovery procedures
+3. **Deploy application**:
+   - No special considerations needed
+   - Import functions directly from modules
+   - Runtime verifies checksums automatically
 
-**Maintenance:**
-- Upgrading Vibesafe versions
-- Migrating checkpoints
-- Cleaning up old checkpoints
-- Cache management
+### Import Patterns
 
-**Security:**
-- API key rotation
-- Checkpoint integrity verification
-- Supply chain considerations
+**Development**:
+```python
+from app.math.ops import sum_str  # Direct import
+result = sum_str("2", "3")
+```
+
+**Production (same as dev)**:
+```python
+from app.math.ops import sum_str  # Same import!
+result = sum_str("2", "3")
+```
+
+:::tip[Simplified Deployment]
+v0.2 eliminates the `__generated__/` directory, making deployment simpler.
+Your imports work the same in dev and prod.
+:::
+
+### Removed Concerns
+
+The following are no longer needed in v0.2:
+- ❌ Managing `__generated__/` directory
+- ❌ Syncing shim files
+- ❌ Special import path handling
+- ❌ `--write-shims` in CI/CD
+
+## Docker Setup
+
+```dockerfile
+FROM python:3.11-slim
+
+WORKDIR /app
+COPY requirements.txt .
+RUN pip install -r requirements.txt
+
+COPY . .
+RUN vibesafe compile
+
+CMD ["python", "main.py"]
+```
+
+## Kubernetes Configuration
+
+```yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: my-app
+spec:
+  template:
+    spec:
+      containers:
+      - name: app
+        image: my-app:latest
+        env:
+        - name: VIBESAFE_MODE
+          value: "production"
+```
+
+## Monitoring
+
+### Drift Detection in Production
+```python
+from vibesafe import vibesafe
+
+# Check for drift programmatically
+drift = vibesafe.check_drift()
+if drift:
+    print(f"Drift detected: {drift}")
+```
+
+### Health Checks
+```python
+from fastapi import FastAPI
+from vibesafe import vibesafe
+
+app = FastAPI()
+
+@app.get("/health/vibesafe")
+def vibesafe_health():
+    try:
+        vibesafe.validate_checkpoints()
+        return {"status": "healthy"}
+    except Exception as e:
+        return {"status": "unhealthy", "error": str(e)}
+```
+
+## Troubleshooting
+
+### Common Production Errors
+
+**Hash Mismatch**:
+```
+VibesafeValidationError: Checkpoint hash mismatch for app.math.ops.sum_str
+```
+**Solution**: Recompile with `vibesafe compile --force`
+
+**Missing Provider**:
+```
+VibesafeProviderError: No provider available
+```
+**Solution**: Check API keys and provider configuration
+
+### Debugging Hash Mismatches
+```bash
+# Show detailed diff
+vibesafe diff --target app.math.ops.sum_str --verbose
+
+# Recompile specific target
+vibesafe compile --target app.math.ops.sum_str --force
+```
+
+### Performance Issues
+- Use `vibesafe save --freeze-http-deps` to cache HTTP calls
+- Consider local providers for faster generation
+- Monitor provider API rate limits
+
+## Maintenance
+
+### Upgrading Vibesafe Versions
+```bash
+# Update package
+pip install --upgrade vibesafe
+
+# Recompile all
+vibesafe compile --force
+
+# Test thoroughly
+vibesafe test
+```
+
+### Migrating Checkpoints
+```bash
+# Backup old checkpoints
+cp -r .vibesafe .vibesafe.backup
+
+# Recompile with new version
+vibesafe compile --force
+```
+
+### Cleaning Up Old Checkpoints
+```bash
+# Remove unused checkpoints
+vibesafe clean --older-than 30d
+```
+
+## Security
+
+### API Key Rotation
+```bash
+# Update environment variables
+export OPENAI_API_KEY=new_key_here
+
+# Recompile if needed
+vibesafe compile
+```
+
+### Checkpoint Integrity Verification
+```python
+from vibesafe import vibesafe
+
+# Verify all checkpoints
+vibesafe.validate_checkpoints()
+```
 
 ## For Now
 

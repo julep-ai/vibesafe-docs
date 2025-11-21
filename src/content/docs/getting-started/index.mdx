@@ -36,13 +36,15 @@ By the end of this section, you'll have:
 
 ```python
 # Your spec (what you write)
-@vibesafe.func
+from vibesafe import vibesafe, VibeCoded
+
+@vibesafe
 def greet(name: str) -> str:
     """
     >>> greet("Alice")
     'Hello, Alice!'
     """
-    yield VibesafeHandled()
+    raise VibeCoded()
 
 # Generated implementation (what AI writes)
 # ↓ Lives in .vibesafe/checkpoints/app/hello/greet/<hash>/impl.py

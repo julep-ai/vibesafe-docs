@@ -5,6 +5,14 @@ sidebar:
   order: 3
 ---
 
+:::note[v0.2 API Changes]
+If you're upgrading from v0.1:
+- Use `VibeCoded` instead of `VibesafeHandled`
+- Use `raise VibeCoded()` instead of `yield VibesafeHandled()`
+- Use `@vibesafe` instead of `@vibesafe.func`
+- Import directly: `from app.math.ops import func` (no `__generated__`)
+:::
+
 ## What We're Building
 
 A simple `greet(name)` function that returns `"Hello, {name}!"`.
@@ -24,9 +32,9 @@ vim app/hello.py
 Write this:
 
 ```python
-from vibesafe import vibesafe, VibesafeHandled
+from vibesafe import vibesafe, VibeCoded
 
-@vibesafe.func
+@vibesafe
 def greet(name: str) -> str:
     """
     Return a personalized greeting message.
@@ -38,17 +46,17 @@ def greet(name: str) -> str:
     >>> greet("世界")
     'Hello, 世界!'
     """
-    yield VibesafeHandled()
+    raise VibeCoded()
 ```
 
 That's it. That's your entire spec.
 
 **What each part does:**
-- `@vibesafe.func` - "Hey Vibesafe, generate this"
+- `@vibesafe` - "Hey Vibesafe, generate this"
 - `name: str -> str` - Type hints tell AI what types to expect
 - `"""..."""` - Docstring explains what it does
 - `>>> greet("Alice")` - Doctests show expected behavior
-- `yield VibesafeHandled()` - "AI, fill in everything after this point"
+- `raise VibeCoded()` - "AI, fill in everything after this point"
 
 ## Step 2: Scan for It
 
@@ -243,7 +251,7 @@ vibesafe test --target app.hello/greet
 ### Mathematical Function
 
 ```python
-@vibesafe.func
+@vibesafe
 def fibonacci(n: int) -> int:
     """
     Return the nth Fibonacci number (0-indexed).
@@ -259,13 +267,13 @@ def fibonacci(n: int) -> int:
     """
     if n < 0:
         raise ValueError("n must be non-negative")
-    yield VibesafeHandled()
+    raise VibeCoded()
 ```
 
 ### String Manipulation
 
 ```python
-@vibesafe.func
+@vibesafe
 def reverse_words(text: str) -> str:
     """
     Reverse the order of words.
@@ -277,13 +285,13 @@ def reverse_words(text: str) -> str:
     >>> reverse_words("one")
     'one'
     """
-    yield VibesafeHandled()
+    raise VibeCoded()
 ```
 
 ### Data Processing
 
 ```python
-@vibesafe.func
+@vibesafe
 def word_frequency(text: str) -> dict[str, int]:
     """
     Count word frequency (case-insensitive).
@@ -294,7 +302,7 @@ def word_frequency(text: str) -> dict[str, int]:
     {'the': 1, 'quick': 1, 'brown': 1, 'fox': 1}
     """
     normalized = text.lower()
-    yield VibesafeHandled()
+    raise VibeCoded()
 ```
 
 Compile and test all at once:

@@ -30,19 +30,19 @@ This gives you: reproducible builds, drift detection, and zero runtime overhead.
 
 You write a spec:
 ```python
-@vibesafe.func
+@vibesafe
 def add(a: int, b: int) -> int:
     """>>> add(2, 3)\n5"""
-    yield VibesafeHandled()
+    raise VibeCoded()
 ```
 
 Here's what happens when you run `vibesafe compile`:
 
 ```
 1. AST Parser reads your code
-   ├─ Extracts signature: add(a: int, b: int) -> int
-   ├─ Finds doctests: [(2, 3) → 5]
-   └─ Captures code before yield: (none in this case)
+    ├─ Extracts signature: add(a: int, b: int) -> int
+    ├─ Finds doctests: [(2, 3) → 5]
+    └─ Captures code before raise: (none in this case)
 
 2. Hasher computes spec hash
    ├─ Combines: signature + doctests + model config + template ID
@@ -54,7 +54,7 @@ Here's what happens when you run `vibesafe compile`:
    └─ Miss? Continue to step 4
 
 4. Prompt renderer (Jinja2)
-   ├─ Load template: prompts/function.j2
+   ├─ Load template: vibesafe/templates/function.j2
    ├─ Inject: signature, doctests, types
    └─ Output: Complete prompt string
 
@@ -106,8 +106,8 @@ Here's what happens when you run `vibesafe compile`:
 The public API and global unit registry:
 
 ```python
-@vibesafe.func  # For regular functions
-@vibesafe.http(method="POST", path="/calculate")  # For FastAPI endpoints
+@vibesafe  # For regular functions
+@vibesafe(kind="http", method="POST", path="/calculate")  # For FastAPI endpoints
 ```
 
 Decorators register units to a module-level registry:
@@ -127,7 +127,7 @@ Stores metadata (provider, template, model) and defers to runtime loader.
 Reads your Python code and extracts:
 - Function signature (name, params, return type)
 - Docstring with doctests
-- Code before `VibesafeHandled()` (pre-hole body)
+- Code before `VibeCoded()` (pre-hole body)
 - Referenced variables (for dependency hashing)
 
 Uses Python's `ast` module. Handles both sync and async functions.

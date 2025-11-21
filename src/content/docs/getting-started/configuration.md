@@ -41,8 +41,9 @@ index = ".vibesafe/index.toml"         # Active checkpoint mapping
 generated = "__generated__"             # Import shim directory (deprecated)
 
 [prompts]
-function = "prompts/function.j2"        # Jinja2 template for @vibesafe.func
-http = "prompts/http_endpoint.j2"       # Jinja2 template for @vibesafe.http
+function = "vibesafe/templates/function.j2"        # Jinja2 template for @vibesafe
+http = "vibesafe/templates/http_endpoint.j2"       # Jinja2 template for @vibesafe(kind="http")
+cli = "vibesafe/templates/cli_command.j2"         # Jinja2 template for @vibesafe(kind="cli")
 
 [sandbox]
 enabled = false  # Sandboxed test execution (experimental)
@@ -100,13 +101,13 @@ base_url = "http://localhost:8000/v1"
 
 Use in code:
 ```python
-@vibesafe.func(provider="claude")  # Use Claude
+@vibesafe(provider="claude")  # Use Claude
 def complex_task(x: int) -> int:
-    yield VibesafeHandled()
+    raise VibeCoded()
 
-@vibesafe.func(provider="local")   # Use local model
+@vibesafe(provider="local")   # Use local model
 def simple_task(x: int) -> int:
-    yield VibesafeHandled()
+    raise VibeCoded()
 ```
 
 ## Environment Variables
@@ -136,7 +137,7 @@ vibesafe.toml           # Your config
 
 ## Custom Prompts
 
-Create `prompts/my_template.j2`:
+Create `vibesafe/templates/my_template.j2`:
 
 ```jinja2
 Generate a Python function that:
@@ -151,9 +152,9 @@ Return only the function code, no explanations.
 
 Use it:
 ```python
-@vibesafe.func(template="prompts/my_template.j2")
+@vibesafe(template="vibesafe/templates/my_template.j2")
 def my_func(x: int) -> int:
-    yield VibesafeHandled()
+    raise VibeCoded()
 ```
 
 Available template vars:
@@ -162,7 +163,7 @@ Available template vars:
 - `params` - Parameter list
 - `doctests` - Parsed test cases
 - `docstring` - Full docstring
-- `pre_hole_src` - Code before VibesafeHandled()
+- `pre_hole_src` - Code before VibeCoded()
 
 ## Template Resolution
 
@@ -172,6 +173,7 @@ Vibesafe resolves which prompt template to use for each unit through the followi
 2. Unit type-based default from `vibesafe.toml`:
    - `http` units → `prompts.http` config value
    - `function` units → `prompts.function` config value
+   - `cli` units → `prompts.cli` config value
 
 This is handled automatically by the `resolve_template_id()` helper.
 

@@ -35,8 +35,8 @@ Every spec gets a unique 64-character hex string computed from everything that m
 H_spec = SHA-256(
     function_signature      # add(a: int, b: int) -> int
     + docstring_normalized  # With examples, whitespace normalized
-    + pre_hole_body         # Code before VibesafeHandled()
-    + vibesafe_version      # "0.1.2"
+    + pre_hole_body         # Code before VibeCoded()
+    + vibesafe_version      # "0.2.0"
     + template_id           # "function" or "http_endpoint"
     + provider_model        # "gpt-4o-mini"
     + temperature           # 0.0
@@ -62,7 +62,7 @@ This means changing template resolution (via config or decorator params) will ch
 ### Example
 
 ```python
-@vibesafe.func
+@vibesafe
 def add(a: int, b: int) -> int:
     """
     Add two integers.
@@ -72,14 +72,14 @@ def add(a: int, b: int) -> int:
     >>> add(-1, 1)
     0
     """
-    yield VibesafeHandled()
+    raise VibeCoded()
 ```
 
 **Hash inputs**:
 - Signature: `add(a: int, b: int) -> int`
 - Docstring: `Add two integers.\n\n>>> add(2, 3)\n5\n>>> add(-1, 1)\n0`
-- Pre-hole: `` (empty - nothing before yield)
-- Version: `0.1.2`
+- Pre-hole: `` (empty - nothing before raise)
+- Version: `0.2.0`
 - Template: `function`
 - Model: `gpt-4o-mini`
 - Temperature: `0.0`
@@ -119,7 +119,7 @@ Vibesafe tracks what your spec depends on and includes it in the hash.
 ```python
 from app.utils import validate
 
-@vibesafe.func
+@vibesafe
 def process(data: str) -> dict:
     """
     >>> process("test")
@@ -128,7 +128,7 @@ def process(data: str) -> dict:
     # References 'validate' - tracked!
     if not validate(data):
         raise ValueError("Invalid")
-    yield VibesafeHandled()
+    raise VibeCoded()
 ```
 
 **Dependency digest includes**:
@@ -213,7 +213,7 @@ LLM responses are cached using the spec hash as the key.
 | Rename file | `math.py` → `arithmetic.py` | No (if module path same) |
 | Add comments | Add `# This is...` | No |
 | Reformat whitespace | Change indentation | No (normalized) |
-| Add other functions | New unrelated `@vibesafe.func` | No |
+| Add other functions | New unrelated `@vibesafe` | No |
 
 ## Practical Implications
 
@@ -248,7 +248,6 @@ app/**/*.py             # Your specs
 **Ignore**:
 ```
 .vibesafe/cache/        # LLM responses
-__generated__/          # Auto-generated shims (deprecated)
 ```
 
 ### Upgrading Vibesafe

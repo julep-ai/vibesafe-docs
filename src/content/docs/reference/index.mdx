@@ -11,95 +11,124 @@ This section is for when you need to know "what are all the options for X?"
 
 Not tutorials. Not explanations. Just facts.
 
-## Core API
+## API Reference
 
-### `get_registry()`
+## Decorators
 
-```python
-from vibesafe.core import get_registry
+### @vibesafe
 
-def get_registry() -> dict[str, dict[str, Any]]:
-    """
-    Return the global unit registry containing all decorated functions.
+Main decorator for marking functions to be AI-implemented.
 
-    Returns:
-        Dictionary mapping unit_id (module.path/function_name) to metadata
-
-    Example:
-        >>> from vibesafe.core import get_registry
-        >>> registry = get_registry()
-        >>> list(registry.keys())
-        ['examples.math.ops/sum_str', 'examples.api.routes/hello_endpoint']
-    """
-```
-
-### `get_unit(unit_id: str)`
+#### Signature
 
 ```python
-from vibesafe.core import get_unit
-
-def get_unit(unit_id: str) -> dict[str, Any] | None:
-    """
-    Retrieve metadata for a specific registered unit.
-
-    Args:
-        unit_id: Unit identifier in format "module.path/function_name"
-
-    Returns:
-        Unit metadata dict or None if not found
-
-    Metadata includes:
-        - type: "function" or "http"
-        - func: The original function object
-        - provider: Provider name or None
-        - template: Template path
-        - module: Module name
-        - qualname: Qualified function name
-
-    Example:
-        >>> from vibesafe.core import get_unit
-        >>> meta = get_unit("examples.math.ops/sum_str")
-        >>> meta["type"]
-        'function'
-    """
+@vibesafe(
+    provider: str = "default",
+    template: str | None = None,
+    model: str | None = None,
+    kind: Literal["function", "http", "cli"] = "function"
+)
 ```
 
-### `resolve_template_id()`
+#### Parameters
+
+- provider (str): Provider name from vibesafe.toml. Default: "default"
+- template (str | None): Custom template path. Default: uses kind to select template
+- model (str | None): Override model for this specific unit
+- kind (str): Type of implementation. Options:
+  - "function": Regular Python function (default)
+  - "http": FastAPI HTTP endpoint
+  - "cli": CLI command
+
+#### Examples
+
+Basic Function:
 
 ```python
-from vibesafe.config import resolve_template_id
+from vibesafe import vibesafe, VibeCoded
 
-def resolve_template_id(
-    unit_meta: dict[str, Any],
-    config: VibesafeConfig | None = None
-) -> str:
+@vibesafe
+def greet(name: str) -> str:
     """
-    Determine which prompt template to use for a unit.
-
-    Resolution order:
-    1. Explicit template in unit_meta["template"]
-    2. Type-based default from config:
-       - http → config.prompts.http
-       - function → config.prompts.function
-
-    Args:
-        unit_meta: Unit metadata dictionary
-        config: Optional config override (defaults to global config)
-
-    Returns:
-        Template identifier (file path)
-
-    Example:
-        >>> from vibesafe.config import resolve_template_id, get_config
-        >>> meta = {"kind": "http"}
-        >>> resolve_template_id(meta)
-        'prompts/http_endpoint.j2'
-        >>>
-        >>> meta_custom = {"template": "custom/my_template.j2"}
-        >>> resolve_template_id(meta_custom)
-        'custom/my_template.j2'
+    >>> greet("World")
+    'Hello, World!'
     """
+    raise VibeCoded()
 ```
+
+HTTP Endpoint:
+
+```python
+@vibesafe(kind="http")
+def create_user(name: str, email: str) -> dict:
+    """
+    POST endpoint to create a user.
+
+    >>> create_user("Alice", "alice@example.com")
+    {'id': '...', 'name': 'Alice', 'email': 'alice@example.com'}
+    """
+    raise VibeCoded()
+```
+
+CLI Command:
+
+```python
+@vibesafe(kind="cli")
+def deploy(env: str, dry_run: bool = False) -> None:
+    """
+    Deploy application to environment.
+
+    >>> deploy("staging", dry_run=True)
+    # Outputs deployment plan
+    """
+    raise VibeCoded()
+```
+
+Custom Model:
+
+```python
+@vibesafe(model="gpt-4", provider="openai")
+def complex_analysis(data: list[dict]) -> dict:
+    """Complex analysis requiring advanced model."""
+    raise VibeCoded()
+```
+
+## Exceptions
+
+### VibeCoded
+
+Exception/marker raised to indicate where AI should generate code.
+
+#### Usage
+
+```python
+def my_function():
+    # Optional preamble code
+    validate_input()
+
+    # Mark AI boundary
+    raise VibeCoded()
+```
+
+#### Notes
+
+- Must be raised (not yielded) in function body
+- Can appear after preamble code
+- Signals to parser where AI generation begins
+
+## Module Functions
+
+### vibesafe.get_registry()
+
+Returns the global unit registry.
+
+### vibesafe.get_unit(unit_id: str)
+
+Retrieve a specific unit by ID.
+
+### vibesafe.resolve_template_id(unit_id: str)
+
+Resolve the template ID for a unit.
 
 ## What's Here (Coming Soon)
 
@@ -121,9 +150,10 @@ def resolve_template_id(
 - Prompt templates
 
 **API:**
-- `@vibesafe.func` decorator
-- `@vibesafe.http` decorator
-- `VibesafeHandled` marker
+- `@vibesafe` decorator
+- `@vibesafe(kind="http")` decorator
+- `@vibesafe(kind="cli")` decorator
+- `VibeCoded` exception
 - Runtime loader API
 - Exceptions
 

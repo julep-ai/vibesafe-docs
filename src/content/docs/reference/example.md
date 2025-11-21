@@ -49,7 +49,7 @@ from vibesafe.config import resolve_template_id, get_config
 http_meta = {"kind": "http"}
 template = resolve_template_id(http_meta)
 print(f"HTTP template: {template}")
-# Output: prompts/http_endpoint.j2
+# Output: vibesafe/templates/http_endpoint.j2
 
 # Resolve template for function with custom template
 custom_meta = {"kind": "function", "template": "custom/my_template.j2"}
@@ -83,14 +83,55 @@ print(f"Result: {result}")
 
 ```python
 # OLD - Don't use this
-from vibesafe.core import vibesafe
-registry = vibesafe.get_registry()
+from vibesafe import vibesafe
+
+@vibesafe.func
+def greet(name: str) -> str:
+    """
+    >>> greet("World")
+    'Hello, World!'
+    """
+    yield VibesafeHandled()
+
+@vibesafe.http
+def create_user(name: str, email: str) -> dict:
+    """
+    POST endpoint to create a user.
+    """
+    yield VibesafeHandled()
 ```
 
-### New Pattern
+### New Pattern (v0.2)
 
 ```python
 # NEW - Use this
-from vibesafe.core import get_registry
-registry = get_registry()
+from vibesafe import vibesafe, VibeCoded
+
+@vibesafe
+def greet(name: str) -> str:
+    """
+    >>> greet("World")
+    'Hello, World!'
+    """
+    raise VibeCoded()
+
+@vibesafe(kind="http")
+def create_user(name: str, email: str) -> dict:
+    """
+    POST endpoint to create a user.
+
+    >>> create_user("Alice", "alice@example.com")
+    {'id': '...', 'name': 'Alice', 'email': 'alice@example.com'}
+    """
+    raise VibeCoded()
+
+@vibesafe(kind="cli")
+def deploy(env: str, dry_run: bool = False) -> None:
+    """
+    Deploy application to environment.
+
+    >>> deploy("staging", dry_run=True)
+    # Outputs deployment plan
+    """
+    raise VibeCoded()
 ```

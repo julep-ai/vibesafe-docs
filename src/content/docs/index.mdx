@@ -45,51 +45,43 @@ That's Vibesafe. It's a build system for AI-generated code.
 
 ```python
 # 1. Write a spec with doctests
-from vibesafe import vibesafe, VibesafeHandled
+from vibesafe import vibesafe, VibeCoded
 
-@vibesafe.func
-def fibonacci(n: int) -> int:
+@vibesafe
+def analyze(text: str) -> dict:
     """
-    Return nth Fibonacci number.
+    Perform sentiment analysis.
 
-    >>> fibonacci(0)
-    0
-    >>> fibonacci(5)
-    5
-    >>> fibonacci(10)
-    55
+    >>> analyze("I love this!")
+    {'sentiment': 'positive', 'score': 0.95}
     """
-    if n < 0:
-        raise ValueError("n must be >= 0")
-    yield VibesafeHandled()  # AI fills in everything after this
+    raise VibeCoded()
 ```
 
 ```bash
 # 2. Compile (calls LLM, generates implementation)
-$ vibesafe compile --target app.math/fibonacci
+$ vibesafe compile --target app.sentiment/analyze
 ✓ Extracted spec
 ✓ Called LLM (gpt-4o-mini)
 ✓ Generated implementation
 ✓ Saved checkpoint
 
 # 3. Test (runs doctests + type checking + linting)
-$ vibesafe test --target app.math/fibonacci
-✓ Doctest 1/3 passed
-✓ Doctest 2/3 passed
-✓ Doctest 3/3 passed
+$ vibesafe test --target app.sentiment/analyze
+✓ Doctest 1/1 passed
 ✓ Type check passed (mypy)
 ✓ Lint passed (ruff)
 
 # 4. Save (marks as production-ready)
-$ vibesafe save --target app.math/fibonacci
+$ vibesafe save --target app.sentiment/analyze
 ✓ Checkpoint activated
 ```
 
 ```python
 # 5. Use it (just regular imports)
-from app.math import fibonacci
+from app.sentiment import analyze
 
-print(fibonacci(10))  # 55
+print(analyze("I love this!"))  # {'sentiment': 'positive', 'score': 0.95}
 ```
 
 **The AI-generated implementation is cached, tested, and frozen.** Change the spec? Hash changes, and you know immediately.
@@ -151,7 +143,7 @@ The diff is version-controlled. The tests are automatic. The deployments are rep
 Works with FastAPI endpoints too:
 
 ```python
-@vibesafe.http(method="POST", path="/calculate")
+@vibesafe
 async def calculate(a: int, b: int, op: str) -> dict[str, int]:
     """
     Perform arithmetic.
@@ -162,7 +154,7 @@ async def calculate(a: int, b: int, op: str) -> dict[str, int]:
     """
     if op not in ["add", "subtract", "multiply", "divide"]:
         raise ValueError(f"Invalid operation: {op}")
-    return VibesafeHandled()
+    raise VibeCoded()
 ```
 
 Mount to FastAPI, get automatic endpoints. With health checks. And dependency freezing.

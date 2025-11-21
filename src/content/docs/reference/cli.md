@@ -7,50 +7,43 @@ This page documents all Vibesafe CLI commands, their options, and usage patterns
 
 ## vibesafe scan
 
-Discover and list all vibesafe units in the project.
+Scan project for vibesafe-decorated functions and register them.
 
 ### Usage
 
 ```bash
-vibesafe scan [OPTIONS]
+vibesafe scan
 ```
 
 ### Options
 
-#### `--write-shims` (DEPRECATED)
-
-**Status:** Deprecated as of v0.2.0
-
-Previously generated import shims in `__generated__/` directory. Now prints a deprecation warning.
-
-```bash
-$ vibesafe scan --write-shims
-
-Found 3 units...
-
-⚠ Shims are deprecated and no longer needed.
-
-Migration: Remove --write-shims from your scripts. Import generated code directly
-through the runtime loader.
-```
+None. (The --write-shims flag has been removed as of v0.2)
 
 ### Output
 
-```
-Found 5 vibesafe units:
+Displays a table of discovered units with their IDs, doctest counts, and checkpoint
+ status.
 
-  app.math/add               [4 doctests]  ✓ checkpoint active
-  app.math/fibonacci         [4 doctests]  ✓ checkpoint active
-  app.api.routes/calculate   [2 doctests]  ⚠ no checkpoint
-  app.api.routes/health      [1 doctest]   ⚠ drift detected
-  app.utils.text/reverse     [3 doctests]  ✓ checkpoint active
+Example
 
-Summary:
-  Total units: 5
-  Active checkpoints: 3
-  Missing checkpoints: 1
-  Drifted specs: 1
+```bash
+$ vibesafe scan
+Scanning for vibesafe units...
+
+┏━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━┳━━━━━━━━━━━━┓
+┃ Unit ID                ┃ Tests   ┃ Status     ┃
+┡━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━╇━━━━━━━━━━━━┩
+│ app.math.ops/sum_str   │ 2       │ ✓ active   │
+│ app.api.routes/get_user│ 3       │ ✗ missing  │
+└────────────────────────┴─────────┴────────────┘
+
+Total units: 2
 ```
+
+:::note[Shims Deprecated]
+Prior to v0.2, vibesafe scan --write-shims would generate import shims.
+This is no longer needed—import functions directly from their modules.
+:::
 
 ### Status Indicators
 

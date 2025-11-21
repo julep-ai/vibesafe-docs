@@ -13,6 +13,154 @@ The Appendices section provides quick-reference materials to support your vibesa
 - **Compatibility Matrices**: Check provider support, Python version requirements, and feature availability across environments.
 - **Roadmap Highlights**: Track upcoming features, experimental capabilities, and community-driven enhancements.
 
+## Appendix A: v0.2 Migration Guide
+
+This guide helps you migrate from Vibesafe v0.1 to v0.2. The main changes involve simplified decorators and exception handling.
+
+### Step 1: Update Imports
+
+**Before (v0.1):**
+```python
+from vibesafe import vibesafe, VibesafeHandled
+```
+
+**After (v0.2):**
+```python
+from vibesafe import vibesafe, VibeCoded
+```
+
+### Step 2: Update Decorators
+
+**Before (v0.1):**
+```python
+@vibesafe.func
+def my_function():
+    # ...
+    yield VibesafeHandled()
+```
+
+**After (v0.2):**
+```python
+@vibesafe
+def my_function():
+    # ...
+    raise VibeCoded()
+```
+
+### Step 3: Update HTTP Endpoints
+
+**Before (v0.1):**
+```python
+@vibesafe.http(method="POST", path="/endpoint")
+def my_endpoint():
+    # ...
+    return VibesafeHandled()
+```
+
+**After (v0.2):**
+```python
+@vibesafe
+def my_endpoint():
+    # ...
+    raise VibeCoded()
+```
+
+### Step 4: Remove Generated Imports
+
+**Before (v0.1):**
+```python
+from app.__generated__.math.ops import sum_str
+```
+
+**After (v0.2):**
+```python
+from app.math.ops import sum_str
+```
+
+### Step 5: Update CLI Commands
+
+Remove `--write-shims` flag from compile commands:
+
+**Before (v0.1):**
+```bash
+vibesafe compile --target app.module/function --write-shims
+```
+
+**After (v0.2):**
+```bash
+vibesafe compile --target app.module/function
+```
+
+### Step 6: Verify Migration
+
+Run tests to ensure everything works:
+
+```bash
+vibesafe test
+```
+
+## Appendix B: Deprecation Timeline
+
+| Feature | Deprecated | Removed | Alternative |
+|---------|-----------|---------|-------------|
+| `VibesafeHandled` | v0.2 | v0.3 (planned) | `VibeCoded` |
+| `@vibesafe.func` | v0.2 | v0.3 (planned) | `@vibesafe` |
+| `--write-shims` | v0.2 | v0.2 (removed) | Direct imports |
+| `__generated__/` | v0.2 | v0.3 (planned) | Direct imports |
+
+## Appendix C: Common Migration Issues
+
+### Issue: Import Error
+
+**Error:**
+```
+ModuleNotFoundError: No module named 'app.__generated__'
+```
+
+**Code:**
+```python
+from app.__generated__.math.ops import sum_str
+```
+
+**Fix:**
+```python
+from app.math.ops import sum_str
+```
+
+### Issue: VibesafeHandled Not Found
+
+**Error:**
+```
+ImportError: cannot import name 'VibesafeHandled'
+```
+
+**Code:**
+```python
+from vibesafe import VibesafeHandled
+```
+
+**Fix:**
+```python
+from vibesafe import VibeCoded
+```
+
+### Issue: yield vs raise
+
+**Error:**
+```
+SyntaxError or unexpected behavior
+```
+
+**Code:**
+```python
+yield VibesafeHandled()
+```
+
+**Fix:**
+```python
+raise VibeCoded()
+```
+
 ## Planned Articles
 
 This section will grow to include:
