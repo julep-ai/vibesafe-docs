@@ -36,7 +36,7 @@ H_spec = SHA-256(
     function_signature      # add(a: int, b: int) -> int
     + docstring_normalized  # With examples, whitespace normalized
     + pre_hole_body         # Code before VibeCoded()
-    + vibesafe_version      # "0.2.0"
+    + vibesafe_version      # "0.2.1"
     + template_id           # "function" or "http_endpoint"
     + provider_model        # "gpt-4o-mini"
     + temperature           # 0.0
@@ -79,7 +79,7 @@ def add(a: int, b: int) -> int:
 - Signature: `add(a: int, b: int) -> int`
 - Docstring: `Add two integers.\n\n>>> add(2, 3)\n5\n>>> add(-1, 1)\n0`
 - Pre-hole: `` (empty - nothing before raise)
-- Version: `0.2.0`
+- Version: `0.2.1`
 - Template: `function`
 - Model: `gpt-4o-mini`
 - Temperature: `0.0`

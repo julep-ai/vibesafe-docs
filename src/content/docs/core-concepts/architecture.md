@@ -54,7 +54,7 @@ Here's what happens when you run `vibesafe compile`:
    └─ Miss? Continue to step 4
 
 4. Prompt renderer (Jinja2)
-   ├─ Load template: vibesafe/templates/function.j2
+   ├─ Load template: vibesafe/templates/function.j2 (packaged)
    ├─ Inject: signature, doctests, types
    └─ Output: Complete prompt string
 

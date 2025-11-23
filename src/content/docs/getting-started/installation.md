@@ -72,7 +72,7 @@ vibesafe --version
 vibe --version  # shorter alias
 ```
 
-You should see something like `vibesafe 0.1.2`.
+You should see something like `vibesafe 0.2.1`.
 
 ## Set Your API Key
 

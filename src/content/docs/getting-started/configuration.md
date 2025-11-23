@@ -28,8 +28,9 @@ env = "dev"        # "dev" = auto-regen, "prod" = frozen
 [provider.default]
 kind = "openai-compatible"  # Only option right now
 model = "gpt-4o-mini"       # Any OpenAI-compatible model
-temperature = 0.0           # Keep at 0.0 for determinism
 seed = 42                   # Ditto - reproducibility
+reasoning_effort = "medium" # optional: minimal|low|medium|high|none
+service_tier = "auto"      # optional: pass-through tier flag for providers
 base_url = "https://api.openai.com/v1"
 api_key_env = "OPENAI_API_KEY"  # Env var name
 timeout = 60                # Seconds before giving up
@@ -41,9 +42,9 @@ index = ".vibesafe/index.toml"         # Active checkpoint mapping
 generated = "__generated__"             # Import shim directory (deprecated)
 
 [prompts]
-function = "vibesafe/templates/function.j2"        # Jinja2 template for @vibesafe
-http = "vibesafe/templates/http_endpoint.j2"       # Jinja2 template for @vibesafe(kind="http")
-cli = "vibesafe/templates/cli_command.j2"         # Jinja2 template for @vibesafe(kind="cli")
+function = "vibesafe/templates/function.j2"        # Packaged Jinja2 template for @vibesafe
+http = "vibesafe/templates/http_endpoint.j2"       # Packaged template for @vibesafe(kind="http")
+cli = "vibesafe/templates/cli_command.j2"         # Packaged template for @vibesafe(kind="cli")
 
 [sandbox]
 enabled = false  # Sandboxed test execution (experimental)
@@ -60,7 +61,6 @@ kind = "openai-compatible"
 model = "claude-3-5-sonnet-20241022"
 base_url = "https://api.anthropic.com/v1"
 api_key_env = "ANTHROPIC_API_KEY"
-temperature = 0.0
 seed = 42
 ```
 
@@ -74,7 +74,6 @@ kind = "openai-compatible"
 model = "llama-3-70b-instruct"
 base_url = "http://localhost:8000/v1"  # Your server
 api_key_env = "LOCAL_API_KEY"          # Optional
-temperature = 0.0
 ```
 
 Works with llama.cpp, vLLM, Ollama, LM Studio, etc.
@@ -137,7 +136,7 @@ vibesafe.toml           # Your config
 
 ## Custom Prompts
 
-Create `vibesafe/templates/my_template.j2`:
+Create `src/vibesafe/templates/my_template.j2` (or ship your own path):
 
 ```jinja2
 Generate a Python function that:
